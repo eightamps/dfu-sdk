@@ -27,7 +27,6 @@ namespace EightAmps
 
         public Aspen()
         {
-            Console.WriteLine("YOOO");
         }
 
         public Aspen(Device device)
@@ -37,6 +36,11 @@ namespace EightAmps
         private bool isDfuFile(string dfuFilePath)
         {
             return DfuFileRegex.IsMatch(dfuFilePath);
+        }
+
+        public Version GetFirmwareVersion(string dfuFilePath)
+        {
+            return new Version(2, 3);
         }
 
         public bool ShouldUpdateFirmware(string dfuFilePath)
