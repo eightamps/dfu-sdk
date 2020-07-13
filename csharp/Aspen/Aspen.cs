@@ -1,4 +1,5 @@
 ﻿using System;
+using DeviceProgramming.Dfu;
 
 namespace EightAmps
 {
@@ -18,7 +19,7 @@ namespace EightAmps
             Console.WriteLine("YOOO");
         }
 
-        public Aspen(int device)
+        public Aspen(Device device)
         {
         }
 

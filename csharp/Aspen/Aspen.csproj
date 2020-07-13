@@ -4,4 +4,9 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Vendor\DeviceProgramming\DeviceProgramming.csproj" />
+    <ProjectReference Include="..\Vendor\LibUsbDfu\LibUsbDfu.csproj" />
+  </ItemGroup>
+
 </Project>
