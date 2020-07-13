@@ -4,6 +4,10 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\Vendor\DeviceProgramming\DeviceProgramming.csproj" />
     <ProjectReference Include="..\Vendor\LibUsbDfu\LibUsbDfu.csproj" />
