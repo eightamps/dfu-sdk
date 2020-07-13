@@ -1,0 +1,6 @@
+[submodule "csharp/Vendor/LibUsbDfu"]
+	path = csharp/Vendor/LibUsbDfu
+	url = git@github.com:IntergatedCircuits/LibUsbDfu.git
+[submodule "csharp/Vendor/DfuBootloader"]
+	path = csharp/Vendor/DfuBootloader
+	url = git@github.com:IntergatedCircuits/DfuBootloader.git
