@@ -9,8 +9,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="LibUsbDotNet" Version="2.2.29" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Vendor\DeviceProgramming\DeviceProgramming.csproj" />
-    <ProjectReference Include="..\Vendor\LibUsbDfu\LibUsbDfu.csproj" />
   </ItemGroup>
 
 </Project>
