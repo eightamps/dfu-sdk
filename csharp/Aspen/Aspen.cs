@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text.RegularExpressions;
 using DeviceProgramming.Dfu;
+using DeviceProgramming.FileFormat;
 
 namespace EightAmps
 {
@@ -16,6 +17,10 @@ namespace EightAmps
 
     public class Aspen
     {
+
+        private static Regex DfuVersionRegex = new Regex
+            (@"(\d+)\.(\d+)\.dfu$", RegexOptions.Compiled);
+
         private static Regex DfuFileRegex = new Regex
             (@"\.dfu$", RegexOptions.Compiled);
 
@@ -38,9 +43,24 @@ namespace EightAmps
             return DfuFileRegex.IsMatch(dfuFilePath);
         }
 
-        public Version GetFirmwareVersion(string dfuFilePath)
+        private Version GetVersionFromFileName(string dfuFilePath)
         {
-            return new Version(2, 3);
+            var matched = DfuVersionRegex.Match(dfuFilePath);
+            var major = Int32.Parse(matched.Groups[1].ToString());
+            var minor = Int32.Parse(matched.Groups[2].ToString());
+            return new Version(major, minor);
+        }
+
+        public Version GetFirmwareVersionFromDfu(string dfuFilePath)
+        {
+            if (!isDfuFile(dfuFilePath))
+            {
+                return new Version(0xFF, 0xFF);
+            }
+
+            return GetVersionFromFileName(dfuFilePath);
+            // TODO(lbayes): Get the DFU version from the file contents instead.
+            // return Dfu.ParseFile(dfuFilePath).DeviceInfo.ProductVersion;
         }
 
         public bool ShouldUpdateFirmware(string dfuFilePath)

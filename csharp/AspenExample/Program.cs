@@ -11,7 +11,7 @@ namespace AspenExample
             var aspen = new Aspen();
             if (aspen.ShouldUpdateFirmware(path))
             {
-                Version version = aspen.GetFirmwareVersion(path);
+                Version version = aspen.GetFirmwareVersionFromDfu(path);
                 Console.WriteLine("A firmware update (version {0}) is available.", version.ToString());
                 Console.WriteLine("The computer must remain plugged in and left alone during firmware updates.");
                 Console.WriteLine("Would you like to update now? [Y/n] (Press Enter for Yes)");
