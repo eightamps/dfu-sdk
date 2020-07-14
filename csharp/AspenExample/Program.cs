@@ -8,10 +8,23 @@ namespace AspenExample
         static void Main(string[] args)
         {
             string path = "firmwares/Aspen-v1.3.dfu";
-            var shouldForceVersion = true;
+            var shouldForceVersion = false;
+            string userResponse = "";
             var aspen = new Aspen();
             var shouldUpdate = aspen.ShouldUpdateFirmware(path, shouldForceVersion);
-            if (shouldUpdate == DfuResponse.SHOULD_UPDATE)
+
+            if (shouldUpdate == DfuResponse.VERSION_IGNORED)
+            {
+                Console.WriteLine("Your Aspen software does not need an update at this time.");
+                Console.WriteLine("Would you like to force the update anyway? [Y/n]");
+                userResponse = Console.ReadLine();
+                if (userResponse == "" || userResponse.ToUpper() == "Y")
+                {
+                    shouldForceVersion = true;
+                }
+            }
+
+            if (shouldForceVersion || shouldUpdate == DfuResponse.SHOULD_UPDATE)
             {
                 Version version = aspen.GetFirmwareVersionFromDfu(path);
                 Version oldVersion = aspen.GetConnectedAspenVersion();
@@ -19,7 +32,7 @@ namespace AspenExample
                     version.ToString(), oldVersion.ToString());
                 Console.WriteLine("The computer must remain plugged in and left alone during firmware updates.");
                 Console.WriteLine("Would you like to update now? [Y/n] (Press Enter for Yes)");
-                string userResponse = Console.ReadLine();
+                userResponse = Console.ReadLine();
                 if (userResponse == "" || userResponse.ToUpper() == "Y")
                 {
                     Console.WriteLine("Thank you, attempting to update firmware now.");
@@ -38,10 +51,6 @@ namespace AspenExample
                 {
                     Console.WriteLine("Deferring update for now, thank you!");
                 }
-            }
-            else if (shouldUpdate == DfuResponse.VERSION_IGNORED)
-            {
-                Console.WriteLine("Your Aspen software does not need an update at this time.");
             }
             else
             {

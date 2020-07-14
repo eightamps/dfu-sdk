@@ -8,7 +8,7 @@ using System.Threading;
 
 namespace EightAmps
 {
-    public class Device : DeviceProgramming.Dfu.Device
+    public class Device : DeviceProgramming.Dfu.Device, IDisposable
     {
         private byte configIndex;
         private byte interfaceIndex;
@@ -30,7 +30,7 @@ namespace EightAmps
         /// <summary>
         /// Disposes the underlying non-managed resources of the device.
         /// </summary>
-        public override void Dispose()
+        public void Dispose()
         {
             // Dispose of unmanaged resources.
             Dispose(true);
@@ -176,7 +176,7 @@ namespace EightAmps
             }
         }
 
-        private Device(UsbDevice dev, byte conf, byte interf)
+        protected Device(UsbDevice dev, byte conf, byte interf)
         {
             this.configIndex = conf;
             this.interfaceIndex = interf;

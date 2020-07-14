@@ -4,7 +4,6 @@ using System.ComponentModel;
 using System.Text.RegularExpressions;
 using LibUsbDotNet;
 using DeviceProgramming.FileFormat;
-using DeviceProgramming.Dfu;
 using System.Threading;
 
 namespace EightAmps
@@ -34,12 +33,6 @@ namespace EightAmps
         private static Regex DfuFileRegex = new Regex
             (@"\.dfu$", RegexOptions.Compiled);
 
-        private static Regex UsbIdRegex = new Regex
-            (@"^(?<vid>[a-fA-F0-9]{1,4}):(?<pid>[a-fA-F0-9]{1,4})$", RegexOptions.Compiled);
-
-        private static Regex VersionRegex = new Regex
-            (@"^(?<major>[0-9]{1,2})\.(?<minor>[0-9]{1,2})$", RegexOptions.Compiled);
-
         /**
          * The connected USB device to operate against.
          */
@@ -57,7 +50,7 @@ namespace EightAmps
          * This constructor should generally only be used by the test
          * environment.
          */
-        public Aspen(Device dfuDevice)
+        public Aspen(DeviceProgramming.Dfu.Device dfuDevice)
         {
             this.dfuDevice = dfuDevice;
         }
@@ -86,7 +79,7 @@ namespace EightAmps
         {
             var exception = e.GetException();
             // NOTE(lbayes): Getting this random error on the event bus.
-            if (exception.Message != "FIRMWARE")
+            if (exception.Message != "Firmware")
             {
                 Console.Error.WriteLine("The DFU device reported the following error: {0}", e.GetException().Message);
             }
@@ -115,10 +108,17 @@ namespace EightAmps
 
         private void ClearDevice()
         {
-            this.dfuDevice.DeviceError -= DeviceErrorHandler;
-            this.dfuDevice.DownloadProgressChanged -= DownloadProgressChangedHandler;
-            this.dfuDevice.Dispose();
+            if (this.dfuDevice != null)
+            {
+                this.dfuDevice.DeviceError -= DeviceErrorHandler;
+                this.dfuDevice.DownloadProgressChanged -= DownloadProgressChangedHandler;
+                if (this.dfuDevice is IDisposable)
+                {
+                    ((IDisposable)this.dfuDevice).Dispose();
+                }
+            }
             this.dfuDevice = null;
+            Thread.Sleep(500);
         }
 
         /**
@@ -221,9 +221,7 @@ namespace EightAmps
 
                 if (!device.IsOpen())
                 {
-                    // Clear the current device.
                     ClearDevice();
-                    Thread.Sleep(500);
                 }
                 else
                 {
@@ -240,9 +238,7 @@ namespace EightAmps
                 // if the device detached, clean up
                 if (!device.IsOpen())
                 {
-                    // device.DeviceError -= printDevError;
-                    device.Dispose();
-                    device = null;
+                    ClearDevice();
                 }
 
                 // TODO find device again to verify new version
@@ -258,7 +254,7 @@ namespace EightAmps
             {
                 if (device != null)
                 {
-                    device.Dispose();
+                    ClearDevice();
                 }
             }
         }
