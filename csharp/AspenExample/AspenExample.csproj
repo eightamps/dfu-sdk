@@ -11,10 +11,20 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Aspen\Aspen.csproj" />
+    <ProjectReference Include="..\Vendor\DeviceProgramming\DeviceProgramming.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="firmwares\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="firmwares\Aspen-v1.2.dfu">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="firmwares\Aspen-v1.3.dfu">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

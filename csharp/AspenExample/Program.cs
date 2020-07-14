@@ -7,9 +7,10 @@ namespace AspenExample
     {
         static void Main(string[] args)
         {
-            string path = "firmwares/one.dfu";
+            string path = "firmwares/Aspen-v1.2.dfu";
             var aspen = new Aspen();
-            if (aspen.ShouldUpdateFirmware(path))
+            var shouldUpdate = aspen.ShouldUpdateFirmware(path);
+            if (shouldUpdate == DfuResponse.SHOULD_UPDATE)
             {
                 Version version = aspen.GetFirmwareVersionFromDfu(path);
                 Console.WriteLine("A firmware update (version {0}) is available.", version.ToString());
@@ -35,9 +36,13 @@ namespace AspenExample
                     Console.WriteLine("Deferring update for now, thank you!");
                 }
             }
+            else if (shouldUpdate == DfuResponse.VERSION_IGNORED)
+            {
+                Console.WriteLine("Your Aspen software does not need an update at this time.");
+            }
             else
             {
-                Console.WriteLine("Your Aspen firmware is already up to date.");
+                Console.WriteLine("Your Aspen firmware could not be updated because: {0}", shouldUpdate);
             }
         }
     }
