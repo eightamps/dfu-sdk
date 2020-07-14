@@ -25,6 +25,9 @@
     <None Update="firmwares\Aspen-v1.3.dfu">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="firmwares\Aspen-v1.4.dfu">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

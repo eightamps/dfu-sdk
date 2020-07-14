@@ -4,6 +4,8 @@ using System.ComponentModel;
 using System.Text.RegularExpressions;
 using LibUsbDotNet;
 using DeviceProgramming.FileFormat;
+using DeviceProgramming.Dfu;
+using System.Threading;
 
 namespace EightAmps
 {
@@ -15,7 +17,7 @@ namespace EightAmps
         TIMEOUT = 10,
         FILE_NOT_VALID = 50,
         FILE_NOT_FOUND,
-        VERSION_MISMATCH,
+        VERSION_IS_OKAY,
         CONNECTION_FAILURE,
         INVALID_DFU_PROTOCOL,
         UNEXPECTED_FAILURE,
@@ -42,6 +44,7 @@ namespace EightAmps
          * The connected USB device to operate against.
          */
         private DeviceProgramming.Dfu.Device dfuDevice;
+        private int prevCursor = -1;
 
         /**
          * Instantiate the Aspen service and connect to the open device.
@@ -59,20 +62,76 @@ namespace EightAmps
             this.dfuDevice = dfuDevice;
         }
 
-        private DeviceProgramming.Dfu.Device getDfuDevice()
+        /**
+         * Event fired when DFU download proceeds.
+         */
+        public event EventHandler<ProgressChangedEventArgs> DownloadProgressChanged = delegate { };
+
+        /**
+         * Event fired when a device error is detected.
+         */
+        public event EventHandler<ErrorEventArgs> DeviceError = delegate { };
+
+
+        private void DownloadProgressChangedHandler(object obj, ProgressChangedEventArgs e) {
+            if (prevCursor == Console.CursorTop)
+            {
+                Console.SetCursorPosition(0, Console.CursorTop - 1);
+            }
+            Console.WriteLine("Download progress: {0}%", e.ProgressPercentage);
+            prevCursor = Console.CursorTop;
+        }
+
+        private void DeviceErrorHandler(object obj, ErrorEventArgs e)
+        {
+            var exception = e.GetException();
+            // NOTE(lbayes): Getting this random error on the event bus.
+            if (exception.Message != "FIRMWARE")
+            {
+                Console.Error.WriteLine("The DFU device reported the following error: {0}", e.GetException().Message);
+            }
+        }
+
+        /**
+         * Get the connected DFU Device or establish a connection if one hasn't
+         * already been made.
+         */
+        private DeviceProgramming.Dfu.Device getOrCreateDevice()
         {
             if (this.dfuDevice == null)
             {
-                this.dfuDevice = Device.OpenFirst(UsbDevice.AllDevices, VendorId, ProductId);
+                this.dfuDevice = this.CreateDevice();
             }
             return this.dfuDevice;
         }
 
+        private DeviceProgramming.Dfu.Device CreateDevice()
+        {
+            var device = Device.OpenFirst(UsbDevice.AllDevices, VendorId, ProductId);
+            device.DeviceError += DeviceErrorHandler;
+            device.DownloadProgressChanged += DownloadProgressChangedHandler;
+            return device;
+        }
+
+        private void ClearDevice()
+        {
+            this.dfuDevice.DeviceError -= DeviceErrorHandler;
+            this.dfuDevice.DownloadProgressChanged -= DownloadProgressChangedHandler;
+            this.dfuDevice.Dispose();
+            this.dfuDevice = null;
+        }
+
+        /**
+         * Return true if the provided file name looks like a DFU file.
+         */
         private bool isDfuFile(string dfuFilePath)
         {
             return DfuFileRegex.IsMatch(dfuFilePath);
         }
 
+        /**
+         * Extract the version number from a DFU file.
+         */
         private Version GetVersionFromFileName(string dfuFilePath)
         {
             var matched = DfuVersionRegex.Match(dfuFilePath);
@@ -87,12 +146,12 @@ namespace EightAmps
          * If there is no device connected, or the device is not in
          * Appplication mode, return a zero version to allow progress.
          */
-        private Version GetConnectedAspenVersion()
+        public Version GetConnectedAspenVersion()
         {
-            var device = this.getDfuDevice();
+            var device = this.getOrCreateDevice();
             if (device.InAppMode())
             {
-                return this.getDfuDevice().Info.ProductVersion;
+                return this.getOrCreateDevice().Info.ProductVersion;
             }
             return new Version(0x00, 0x00);
         }
@@ -113,7 +172,7 @@ namespace EightAmps
          * place. Return a helpful status code if a firmware update is not
          * appropriate at this time.
          */
-        public DfuResponse ShouldUpdateFirmware(string dfuFilePath)
+        public DfuResponse ShouldUpdateFirmware(string dfuFilePath, bool forceVersion=false)
         {
             if (!File.Exists(dfuFilePath))
             {
@@ -124,14 +183,14 @@ namespace EightAmps
                 return DfuResponse.FILE_NOT_VALID;
             }
 
-            if (GetConnectedAspenVersion() >= GetFirmwareVersionFromDfu(dfuFilePath))
+            if (!forceVersion && GetConnectedAspenVersion() >= GetFirmwareVersionFromDfu(dfuFilePath))
             {
-                return DfuResponse.VERSION_MISMATCH;
+                return DfuResponse.VERSION_IS_OKAY;
             }
 
             var dfuFileData = Dfu.ParseFile(dfuFilePath);
             // Verify DFU protocol version support
-            if (dfuFileData.DeviceInfo.DfuVersion != getDfuDevice().DfuDescriptor.DfuVersion)
+            if (dfuFileData.DeviceInfo.DfuVersion != getOrCreateDevice().DfuDescriptor.DfuVersion)
             {
                 return DfuResponse.INVALID_DFU_PROTOCOL;
             }
@@ -144,52 +203,36 @@ namespace EightAmps
          * update is not appropriate or does not success, return a helpful
          * status code.
          */
-        public DfuResponse UpdateFirmware(string dfuFilePath)
+        public DfuResponse UpdateFirmware(string dfuFilePath, bool forceVersion=false)
         {
             DeviceProgramming.Dfu.Device device = null;
 
             try
             {
-                var shouldResponse = ShouldUpdateFirmware(dfuFilePath);
+                var shouldResponse = ShouldUpdateFirmware(dfuFilePath, forceVersion);
                 if (shouldResponse != DfuResponse.SHOULD_UPDATE)
                 {
                     return shouldResponse;
                 }
 
-                device = this.getDfuDevice();
+                device = this.getOrCreateDevice();
                 Console.WriteLine("Device found in application mode, reconfiguring device to DFU mode...");
                 device.Reconfigure();
 
                 if (!device.IsOpen())
                 {
-                    // Clean up old device first
-                    device.Dispose();
-                    device = null;
-                    // Reconnect to the device.
-                    device = this.getDfuDevice();
-                    // device = Device.OpenFirst(UsbDevice.AllDevices, vid, pid);
-                    // device.DeviceError += printDevError;
+                    // Clear the current device.
+                    ClearDevice();
+                    Thread.Sleep(500);
                 }
                 else
                 {
                     Console.WriteLine("Device found in DFU mode.");
                 }
 
+                device = this.getOrCreateDevice();
                 var dfuFileData = Dfu.ParseFile(dfuFilePath);
                 Console.WriteLine("DFU image parsed successfully.");
-                int prevCursor = -1;
-
-                EventHandler<ProgressChangedEventArgs> printDownloadProgress = (obj, e) =>
-                {
-                    if (prevCursor == Console.CursorTop)
-                    {
-                        Console.SetCursorPosition(0, Console.CursorTop - 1);
-                    }
-                    Console.WriteLine("Download progress: {0}%", e.ProgressPercentage);
-                    prevCursor = Console.CursorTop;
-                };
-
-                device.DownloadProgressChanged += printDownloadProgress;
                 device.DownloadFirmware(dfuFileData);
                 Console.WriteLine("Download successful, manifesting update...");
                 device.Manifest();
