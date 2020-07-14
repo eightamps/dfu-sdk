@@ -176,6 +176,10 @@ namespace EightAmps
             }
         }
 
+        public Device()
+        {
+        }
+
         protected Device(UsbDevice dev, byte conf, byte interf)
         {
             this.configIndex = conf;

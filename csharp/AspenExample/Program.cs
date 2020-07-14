@@ -12,10 +12,13 @@ namespace AspenExample
             string userResponse = "";
             var aspen = new Aspen();
             var shouldUpdate = aspen.ShouldUpdateFirmware(path, shouldForceVersion);
+            Version version = aspen.GetFirmwareVersionFromDfu(path);
+            Version oldVersion = aspen.GetConnectedAspenVersion();
 
-            if (shouldUpdate == DfuResponse.VERSION_IGNORED)
+            if (shouldUpdate == DfuResponse.VERSION_IS_OKAY)
             {
-                Console.WriteLine("Your Aspen software does not need an update at this time.");
+                Console.WriteLine("A firmware update version {0} is available and you have version {1} installed.",
+                    version.ToString(), oldVersion.ToString());
                 Console.WriteLine("Would you like to force the update anyway? [Y/n]");
                 userResponse = Console.ReadLine();
                 if (userResponse == "" || userResponse.ToUpper() == "Y")
@@ -26,13 +29,15 @@ namespace AspenExample
 
             if (shouldForceVersion || shouldUpdate == DfuResponse.SHOULD_UPDATE)
             {
-                Version version = aspen.GetFirmwareVersionFromDfu(path);
-                Version oldVersion = aspen.GetConnectedAspenVersion();
-                Console.WriteLine("A firmware update version {0} is available and you have version {1} installed.",
-                    version.ToString(), oldVersion.ToString());
                 Console.WriteLine("The computer must remain plugged in and left alone during firmware updates.");
-                Console.WriteLine("Would you like to update now? [Y/n] (Press Enter for Yes)");
-                userResponse = Console.ReadLine();
+                if (!shouldForceVersion)
+                {
+                    Console.WriteLine("A firmware update version {0} is available and you have version {1} installed.",
+                        version.ToString(), oldVersion.ToString());
+                    Console.WriteLine("Would you like to update now? [Y/n] (Press Enter for Yes)");
+                    userResponse = Console.ReadLine();
+                }
+
                 if (userResponse == "" || userResponse.ToUpper() == "Y")
                 {
                     Console.WriteLine("Thank you, attempting to update firmware now.");
