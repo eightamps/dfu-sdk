@@ -1,6 +1,3 @@
-[submodule "csharp/Vendor/LibUsbDfu"]
-	path = csharp/Vendor/LibUsbDfu
-	url = git@github.com:IntergatedCircuits/LibUsbDfu.git
 [submodule "csharp/Vendor/DeviceProgramming"]
 	path = csharp/Vendor/DeviceProgramming
 	url = git@github.com:IntergatedCircuits/DeviceProgramming.git
