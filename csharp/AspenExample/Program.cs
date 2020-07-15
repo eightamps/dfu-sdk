@@ -1,4 +1,6 @@
 ﻿using System;
+using System.ComponentModel;
+using System.Net;
 using EightAmps;
 
 namespace AspenExample
@@ -14,6 +16,11 @@ namespace AspenExample
             var shouldUpdate = aspen.ShouldUpdateFirmware(path, shouldForceVersion);
             Version version = aspen.GetFirmwareVersionFromDfu(path);
             Version oldVersion = aspen.GetConnectedAspenVersion();
+
+            aspen.DownloadProgressChanged += (object sender, ProgressChangedEventArgs e) =>
+            {
+                Console.WriteLine("Download progress: {0}%", e.ProgressPercentage);
+            };
 
             if (shouldUpdate == DfuResponse.VERSION_IS_OKAY)
             {
