@@ -26,6 +26,7 @@ namespace EightAmps
     {
         private static int VendorId = 0x0483;
         private static int ProductId = 0xa367;
+
         private static Regex DfuVersionRegex = new Regex
             (@"(\d+)\.(\d+)\.dfu$", RegexOptions.Compiled);
 
@@ -59,22 +60,18 @@ namespace EightAmps
         /**
          * Event fired when DFU download proceeds.
          */
-        public event EventHandler<ProgressChangedEventArgs> DownloadProgressChanged;
+        public event Action<int> DownloadProgressChanged;
+
+        public event Action<DfuResponse> DownloadCompleted;
 
         /**
          * Event fired when a device error is detected.
          */
-        public event EventHandler<ErrorEventArgs> DeviceError = delegate { };
-
+        public event EventHandler<ErrorEventArgs> DeviceError;
 
         private void DownloadProgressChangedHandler(object obj, ProgressChangedEventArgs e)
         {
-            if (prevCursor == Console.CursorTop)
-            {
-                Console.SetCursorPosition(0, Console.CursorTop - 1);
-            }
-            this.DownloadProgressChanged?.Invoke(this, e);
-            prevCursor = Console.CursorTop;
+            this.DownloadProgressChanged?.Invoke(e.ProgressPercentage);
         }
 
         private void DeviceErrorHandler(object obj, ErrorEventArgs e)
@@ -83,7 +80,7 @@ namespace EightAmps
             // NOTE(lbayes): Getting this random error on the event bus.
             if (exception.Message != "Firmware")
             {
-                Console.Error.WriteLine("The DFU device reported the following error: {0}", e.GetException().Message);
+                this.DeviceError?.Invoke(this, e);
             }
         }
 
@@ -203,7 +200,9 @@ namespace EightAmps
                 return DfuResponse.CONNECTION_FAILURE;
             }
 
-            if (dfuFileData.DeviceInfo.DfuVersion != getOrCreateDevice().DfuDescriptor.DfuVersion)
+            aspenBoard = getOrCreateDevice();
+
+            if (aspenBoard != null && dfuFileData.DeviceInfo.DfuVersion != aspenBoard.DfuDescriptor.DfuVersion)
             {
                 return DfuResponse.INVALID_DFU_PROTOCOL;
             }
@@ -216,7 +215,7 @@ namespace EightAmps
          * update is not appropriate or does not success, return a helpful
          * status code.
          */
-        public DfuResponse UpdateFirmware(string dfuFilePath, bool forceVersion = false)
+        public void UpdateFirmware(string dfuFilePath, bool forceVersion = false)
         {
             DeviceProgramming.Dfu.Device device = null;
 
@@ -225,7 +224,8 @@ namespace EightAmps
                 var shouldResponse = ShouldUpdateFirmware(dfuFilePath, forceVersion);
                 if (shouldResponse != DfuResponse.SHOULD_UPDATE)
                 {
-                    return shouldResponse;
+                    DownloadCompleted?.Invoke(shouldResponse);
+                    return;
                 }
 
                 device = this.getOrCreateDevice();
@@ -256,12 +256,12 @@ namespace EightAmps
 
                 // TODO find device again to verify new version
                 Console.WriteLine("The device has been successfully upgraded.");
-                return DfuResponse.SUCCESS;
+                DownloadCompleted?.Invoke(DfuResponse.SUCCESS);
             }
             catch (Exception e)
             {
                 Console.Error.WriteLine(e.ToString());
-                return DfuResponse.UNEXPECTED_FAILURE;
+                DownloadCompleted?.Invoke(DfuResponse.UNEXPECTED_FAILURE);
             }
             finally
             {
