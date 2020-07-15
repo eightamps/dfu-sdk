@@ -22,11 +22,10 @@ namespace EightAmps
         UNEXPECTED_FAILURE,
     }
 
-    public class Aspen
+    public class Aspen : IAspen
     {
         private static int VendorId = 0x0483;
         private static int ProductId = 0xa367;
-
         private static Regex DfuVersionRegex = new Regex
             (@"(\d+)\.(\d+)\.dfu$", RegexOptions.Compiled);
 
@@ -38,6 +37,8 @@ namespace EightAmps
          */
         private DeviceProgramming.Dfu.Device dfuDevice;
         private int prevCursor = -1;
+
+        public bool IsUpdating => throw new NotImplementedException();
 
         /**
          * Instantiate the Aspen service and connect to the open device.
@@ -58,7 +59,7 @@ namespace EightAmps
         /**
          * Event fired when DFU download proceeds.
          */
-        public event EventHandler<ProgressChangedEventArgs> DownloadProgressChanged = delegate { };
+        public event EventHandler<ProgressChangedEventArgs> DownloadProgressChanged;
 
         /**
          * Event fired when a device error is detected.
@@ -66,12 +67,13 @@ namespace EightAmps
         public event EventHandler<ErrorEventArgs> DeviceError = delegate { };
 
 
-        private void DownloadProgressChangedHandler(object obj, ProgressChangedEventArgs e) {
+        private void DownloadProgressChangedHandler(object obj, ProgressChangedEventArgs e)
+        {
             if (prevCursor == Console.CursorTop)
             {
                 Console.SetCursorPosition(0, Console.CursorTop - 1);
             }
-            Console.WriteLine("Download progress: {0}%", e.ProgressPercentage);
+            this.DownloadProgressChanged?.Invoke(this, e);
             prevCursor = Console.CursorTop;
         }
 
@@ -93,7 +95,11 @@ namespace EightAmps
         {
             if (this.dfuDevice == null)
             {
-                this.dfuDevice = this.CreateDevice();
+                try
+                {
+                    this.dfuDevice = this.CreateDevice();
+                }
+                catch { }
             }
             return this.dfuDevice;
         }
@@ -172,7 +178,7 @@ namespace EightAmps
          * place. Return a helpful status code if a firmware update is not
          * appropriate at this time.
          */
-        public DfuResponse ShouldUpdateFirmware(string dfuFilePath, bool forceVersion=false)
+        public DfuResponse ShouldUpdateFirmware(string dfuFilePath, bool forceVersion = false)
         {
             if (!File.Exists(dfuFilePath))
             {
@@ -190,6 +196,13 @@ namespace EightAmps
 
             var dfuFileData = Dfu.ParseFile(dfuFilePath);
             // Verify DFU protocol version support
+            var aspenBoard = this.getOrCreateDevice();
+
+            if(aspenBoard == null)
+            {
+                return DfuResponse.CONNECTION_FAILURE;
+            }
+
             if (dfuFileData.DeviceInfo.DfuVersion != getOrCreateDevice().DfuDescriptor.DfuVersion)
             {
                 return DfuResponse.INVALID_DFU_PROTOCOL;
@@ -203,7 +216,7 @@ namespace EightAmps
          * update is not appropriate or does not success, return a helpful
          * status code.
          */
-        public DfuResponse UpdateFirmware(string dfuFilePath, bool forceVersion=false)
+        public DfuResponse UpdateFirmware(string dfuFilePath, bool forceVersion = false)
         {
             DeviceProgramming.Dfu.Device device = null;
 
