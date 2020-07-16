@@ -152,10 +152,15 @@ namespace EightAmps
         public Version GetConnectedAspenVersion()
         {
             var device = this.getOrCreateDevice();
-            if (device.InAppMode())
+
+            if(device != null)
             {
-                return this.getOrCreateDevice().Info.ProductVersion;
+                if (device.InAppMode())
+                {
+                    return device.Info.ProductVersion;
+                }
             }
+
             return new Version(0x00, 0x00);
         }
 
