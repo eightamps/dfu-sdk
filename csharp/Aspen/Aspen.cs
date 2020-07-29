@@ -24,20 +24,19 @@ namespace EightAmps
 
     public class Aspen : IAspen
     {
-        private static int VendorId = 0x0483;
-        private static int ProductId = 0xa367;
+        private static readonly int VendorId = 0x0483;
+        private static readonly int ProductId = 0xa367;
 
-        private static Regex DfuVersionRegex = new Regex
+        private static readonly Regex DfuVersionRegex = new Regex
             (@"(\d+)\.(\d+)\.dfu$", RegexOptions.Compiled);
 
-        private static Regex DfuFileRegex = new Regex
+        private static readonly Regex DfuFileRegex = new Regex
             (@"\.dfu$", RegexOptions.Compiled);
 
         /**
          * The connected USB device to operate against.
          */
         private DeviceProgramming.Dfu.Device dfuDevice;
-        private int prevCursor = -1;
 
         public bool IsUpdating => throw new NotImplementedException();
 
@@ -88,7 +87,7 @@ namespace EightAmps
          * Get the connected DFU Device or establish a connection if one hasn't
          * already been made.
          */
-        private DeviceProgramming.Dfu.Device getOrCreateDevice()
+        private DeviceProgramming.Dfu.Device GetOrCreateDevice()
         {
             if (this.dfuDevice == null)
             {
@@ -127,7 +126,7 @@ namespace EightAmps
         /**
          * Return true if the provided file name looks like a DFU file.
          */
-        private bool isDfuFile(string dfuFilePath)
+        private bool IsDfuFile(string dfuFilePath)
         {
             return DfuFileRegex.IsMatch(dfuFilePath);
         }
@@ -151,7 +150,7 @@ namespace EightAmps
          */
         public Version GetConnectedAspenVersion()
         {
-            var device = this.getOrCreateDevice();
+            var device = this.GetOrCreateDevice();
 
             if(device != null)
             {
@@ -186,7 +185,7 @@ namespace EightAmps
             {
                 return DfuResponse.FILE_NOT_FOUND;
             }
-            if (!isDfuFile(dfuFilePath))
+            if (!IsDfuFile(dfuFilePath))
             {
                 return DfuResponse.FILE_NOT_VALID;
             }
@@ -198,14 +197,14 @@ namespace EightAmps
 
             var dfuFileData = Dfu.ParseFile(dfuFilePath);
             // Verify DFU protocol version support
-            var aspenBoard = this.getOrCreateDevice();
+            var aspenBoard = this.GetOrCreateDevice();
 
             if(aspenBoard == null)
             {
                 return DfuResponse.CONNECTION_FAILURE;
             }
 
-            aspenBoard = getOrCreateDevice();
+            aspenBoard = GetOrCreateDevice();
 
             if (aspenBoard != null && dfuFileData.DeviceInfo.DfuVersion != aspenBoard.DfuDescriptor.DfuVersion)
             {
@@ -233,7 +232,7 @@ namespace EightAmps
                     return;
                 }
 
-                device = this.getOrCreateDevice();
+                device = this.GetOrCreateDevice();
                 Console.WriteLine("Device found in application mode, reconfiguring device to DFU mode...");
                 device.Reconfigure();
 
@@ -246,7 +245,7 @@ namespace EightAmps
                     Console.WriteLine("Device found in DFU mode.");
                 }
 
-                device = this.getOrCreateDevice();
+                device = this.GetOrCreateDevice();
                 var dfuFileData = Dfu.ParseFile(dfuFilePath);
                 Console.WriteLine("DFU image parsed successfully.");
                 device.DownloadFirmware(dfuFileData);
