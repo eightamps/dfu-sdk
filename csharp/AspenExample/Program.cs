@@ -8,7 +8,7 @@ namespace AspenExample
 {
     class Program
     {
-        static void Main(string[] args)
+        static void Main()
         {
             while (true) {
                 // string path = "firmwares/Aspen-v1.2.dfu";
@@ -45,9 +45,9 @@ namespace AspenExample
                     Console.WriteLine(e.ToString());
                 }
 
-                aspen.DownloadProgressChanged += (object sender, ProgressChangedEventArgs e) =>
+                aspen.DownloadProgressChanged += (int progressPercentage) =>
                 {
-                    Console.WriteLine("Download progress: {0}%", e.ProgressPercentage);
+                    Console.WriteLine("Download progress: {0}%", progressPercentage);
                 };
 
                 if (shouldUpdate == DfuResponse.VERSION_IS_OKAY)
@@ -77,7 +77,8 @@ namespace AspenExample
                     {
                         Console.WriteLine("Thank you, attempting to update firmware now.");
                         // TODO(lbayes): Subscribe to progress notifications.
-                        DfuResponse response = aspen.UpdateFirmware(path, shouldForceVersion);
+                        aspen.UpdateFirmware(path, shouldForceVersion);
+                        /*
                         if (response == DfuResponse.SUCCESS)
                         {
                             Console.WriteLine("Firmware update completed successfully.");
@@ -86,6 +87,7 @@ namespace AspenExample
                         {
                             Console.Write("Firmware update failed with error code {0}", response);
                         }
+                        */
                     }
                     else
                     {
