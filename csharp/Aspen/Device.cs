@@ -68,7 +68,8 @@ namespace EightAmps
         /// <returns>The first DFU device that matched the parameters</returns>
         public static Device OpenFirst(UsbRegDeviceList deviceList, int vid, int pid)
         {
-            var registries = deviceList.FindAll(new UsbDeviceFinder(vid, pid));
+            var foo = new UsbDeviceFinder(vid, pid);
+            var registries = deviceList.FindAll(foo);
             var devs = OpenAll(registries);
 
             // it's possible that the device is already in DFU mode, in which case only the VID has to match

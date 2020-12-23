@@ -24,8 +24,12 @@ namespace EightAmps
 
     public class Aspen : IAspen
     {
-        private static readonly int VendorId = 0x0483;
-        private static readonly int ProductId = 0xa367;
+        public static readonly int AspenVendorId = 0x0483;
+        public static readonly int AspenProductId = 0xa367;
+        public static readonly int MapleVendorId = 0x335e;
+        public static readonly int MapleProductId = 0x8a01;
+        public static readonly int STM32VendorId = 0x0483;
+        public static readonly int STM32ProductId = 0xdf11;
 
         private static readonly Regex DfuVersionRegex = new Regex
             (@"(\d+)\.(\d+)\.dfu$", RegexOptions.Compiled);
@@ -87,22 +91,22 @@ namespace EightAmps
          * Get the connected DFU Device or establish a connection if one hasn't
          * already been made.
          */
-        private DeviceProgramming.Dfu.Device GetOrCreateDevice()
+        private DeviceProgramming.Dfu.Device GetOrCreateDevice(int vid, int pid)
         {
             if (this.dfuDevice == null)
             {
                 try
                 {
-                    this.dfuDevice = this.CreateDevice();
+                    this.dfuDevice = this.CreateDevice(vid, pid);
                 }
                 catch { }
             }
             return this.dfuDevice;
         }
 
-        private DeviceProgramming.Dfu.Device CreateDevice()
+        private DeviceProgramming.Dfu.Device CreateDevice(int vid, int pid)
         {
-            var device = Device.OpenFirst(UsbDevice.AllDevices, VendorId, ProductId);
+            var device = Device.OpenFirst(UsbDevice.AllDevices, vid, pid);
             device.DeviceError += DeviceErrorHandler;
             device.DownloadProgressChanged += DownloadProgressChangedHandler;
             return device;
@@ -150,9 +154,18 @@ namespace EightAmps
          */
         public Version GetConnectedAspenVersion()
         {
-            var device = this.GetOrCreateDevice();
+            return this.GetConnectedVersion(AspenVendorId, AspenProductId);
+        }
 
-            if(device != null)
+        public Version GetConnectedMapleVersion()
+        {
+            return GetConnectedVersion(AspenVendorId, AspenProductId);
+        }
+        public Version GetConnectedVersion(int vid, int pid)
+        {
+            var device = this.GetOrCreateDevice(vid, pid);
+
+            if (device != null)
             {
                 if (device.InAppMode())
                 {
@@ -161,6 +174,15 @@ namespace EightAmps
             }
 
             return new Version(0x00, 0x00);
+        }
+        public void UpdateAspenFirmware(string dfuFilePath, bool forceVersion = false)
+        {
+            UpdateFirmware(dfuFilePath, AspenVendorId, AspenProductId, forceVersion);
+        }
+
+        public void UpdateMapleFirmware(string dfuFilePath, bool forceVersion = false)
+        {
+            UpdateFirmware(dfuFilePath, MapleVendorId, MapleProductId, forceVersion);
         }
 
         /**
@@ -179,7 +201,7 @@ namespace EightAmps
          * place. Return a helpful status code if a firmware update is not
          * appropriate at this time.
          */
-        public DfuResponse ShouldUpdateFirmware(string dfuFilePath, bool forceVersion = false)
+        public DfuResponse ShouldUpdateFirmware(string dfuFilePath, int vid, int pid, bool forceVersion = false)
         {
             if (!File.Exists(dfuFilePath))
             {
@@ -190,23 +212,23 @@ namespace EightAmps
                 return DfuResponse.FILE_NOT_VALID;
             }
 
-            if (!forceVersion && GetConnectedAspenVersion() >= GetFirmwareVersionFromDfu(dfuFilePath))
+            if (!forceVersion && GetConnectedVersion(vid, pid) >= GetFirmwareVersionFromDfu(dfuFilePath))
             {
                 return DfuResponse.VERSION_IS_OKAY;
             }
 
             var dfuFileData = Dfu.ParseFile(dfuFilePath);
             // Verify DFU protocol version support
-            var aspenBoard = this.GetOrCreateDevice();
+            var board = this.GetOrCreateDevice(vid, pid);
 
-            if(aspenBoard == null)
+            if(board == null)
             {
                 return DfuResponse.CONNECTION_FAILURE;
             }
 
-            aspenBoard = GetOrCreateDevice();
+            board = GetOrCreateDevice(vid, pid);
 
-            if (aspenBoard != null && dfuFileData.DeviceInfo.DfuVersion != aspenBoard.DfuDescriptor.DfuVersion)
+            if (board != null && dfuFileData.DeviceInfo.DfuVersion != board.DfuDescriptor.DfuVersion)
             {
                 return DfuResponse.INVALID_DFU_PROTOCOL;
             }
@@ -219,20 +241,20 @@ namespace EightAmps
          * update is not appropriate or does not success, return a helpful
          * status code.
          */
-        public void UpdateFirmware(string dfuFilePath, bool forceVersion = false)
+        public void UpdateFirmware(string dfuFilePath, int vid, int pid, bool forceVersion = false)
         {
             DeviceProgramming.Dfu.Device device = null;
 
             try
             {
-                var shouldResponse = ShouldUpdateFirmware(dfuFilePath, forceVersion);
+                var shouldResponse = ShouldUpdateFirmware(dfuFilePath, vid, pid, forceVersion);
                 if (shouldResponse != DfuResponse.SHOULD_UPDATE)
                 {
                     DownloadCompleted?.Invoke(shouldResponse);
                     return;
                 }
 
-                device = this.GetOrCreateDevice();
+                device = this.GetOrCreateDevice(vid, pid);
                 Console.WriteLine("Device found in application mode, reconfiguring device to DFU mode...");
                 device.Reconfigure();
 
@@ -245,7 +267,7 @@ namespace EightAmps
                     Console.WriteLine("Device found in DFU mode.");
                 }
 
-                device = this.GetOrCreateDevice();
+                device = this.GetOrCreateDevice(STM32VendorId, STM32ProductId);
                 var dfuFileData = Dfu.ParseFile(dfuFilePath);
                 Console.WriteLine("DFU image parsed successfully.");
                 device.DownloadFirmware(dfuFileData);

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -10,12 +10,22 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Maple-v3.6.dfu" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Aspen\Aspen.csproj" />
     <ProjectReference Include="..\Vendor\DeviceProgramming\DeviceProgramming.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="firmwares\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Maple-v3.6.dfu">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
 
   <ItemGroup>

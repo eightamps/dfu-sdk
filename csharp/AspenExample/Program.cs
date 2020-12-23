@@ -1,6 +1,4 @@
 ﻿using System;
-using System.ComponentModel;
-using System.Net;
 using System.Threading;
 using EightAmps;
 
@@ -11,16 +9,16 @@ namespace AspenExample
         static void Main()
         {
             while (true) {
-                // string path = "firmwares/Aspen-v1.2.dfu";
+                string defaultPath = @"Maple-v3.6.dfu";
                 var shouldForceVersion = false;
                 string userResponse = "";
-                Console.WriteLine("Provide a path to a firmware update (e.g., C:\\Aspen-v1.1.dfu), or type 'q' to quit:");
+                Console.WriteLine("Provide a path to a firmware update (e.g., C:\\Maple-v3.6.dfu), or type 'q' to quit:");
                 string path = Console.ReadLine();
 
                 if (path == "")
                 {
-                    Console.WriteLine("Path must not be empty.");
-                    continue;
+                    path = defaultPath;
+                    // Console.WriteLine("Path must not be empty.");
                 }
 
                 if (path == "q")
@@ -33,12 +31,12 @@ namespace AspenExample
                 Console.WriteLine("Performing update with {0}", path);
 
                 var aspen = new Aspen();
-                var shouldUpdate = aspen.ShouldUpdateFirmware(path, shouldForceVersion);
+                var shouldUpdate = aspen.ShouldUpdateFirmware(path, Aspen.MapleVendorId, Aspen.MapleProductId, shouldForceVersion);
                 Version version = aspen.GetFirmwareVersionFromDfu(path);
                 Version oldVersion = null;
                 try
                 {
-                    oldVersion = aspen.GetConnectedAspenVersion();
+                    oldVersion = aspen.GetConnectedMapleVersion();
                 } catch (Exception e)
                 {
                     Console.WriteLine("No device found");
@@ -77,7 +75,7 @@ namespace AspenExample
                     {
                         Console.WriteLine("Thank you, attempting to update firmware now.");
                         // TODO(lbayes): Subscribe to progress notifications.
-                        aspen.UpdateFirmware(path, shouldForceVersion);
+                        aspen.UpdateMapleFirmware(path, shouldForceVersion);
                         /*
                         if (response == DfuResponse.SUCCESS)
                         {
