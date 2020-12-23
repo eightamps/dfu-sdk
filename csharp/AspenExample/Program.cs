@@ -30,8 +30,8 @@ namespace AspenExample
 
                 Console.WriteLine("Performing update with {0}", path);
 
-                var aspen = new Aspen();
-                var shouldUpdate = aspen.ShouldUpdateFirmware(path, Aspen.MapleVendorId, Aspen.MapleProductId, shouldForceVersion);
+                var aspen = new DfuUpdater();
+                var shouldUpdate = aspen.ShouldUpdateFirmware(path, DfuUpdater.MapleVendorId, DfuUpdater.MapleProductId, shouldForceVersion);
                 Version version = aspen.GetFirmwareVersionFromDfu(path);
                 Version oldVersion = null;
                 try

@@ -1,10 +1,9 @@
 ﻿using System;
-using System.ComponentModel;
 using System.IO;
 
 namespace EightAmps
 {
-    public interface IAspen
+    public interface IDfuUpdater
     {
         bool IsUpdating { get; }
         event EventHandler<ErrorEventArgs> DeviceError;

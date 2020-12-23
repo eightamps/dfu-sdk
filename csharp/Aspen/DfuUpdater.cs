@@ -22,7 +22,7 @@ namespace EightAmps
         UNEXPECTED_FAILURE,
     }
 
-    public class Aspen : IAspen
+    public class DfuUpdater : IDfuUpdater
     {
         public static readonly int AspenVendorId = 0x0483;
         public static readonly int AspenProductId = 0xa367;
@@ -47,7 +47,7 @@ namespace EightAmps
         /**
          * Instantiate the Aspen service and connect to the open device.
          */
-        public Aspen()
+        public DfuUpdater()
         {
         }
 
@@ -55,7 +55,7 @@ namespace EightAmps
          * This constructor should generally only be used by the test
          * environment.
          */
-        public Aspen(DeviceProgramming.Dfu.Device dfuDevice)
+        public DfuUpdater(DeviceProgramming.Dfu.Device dfuDevice)
         {
             this.dfuDevice = dfuDevice;
         }
