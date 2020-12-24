@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Maple-v3.6.dfu" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DfuUpdater\DfuUpdater.csproj" />
+    <ProjectReference Include="..\Vendor\DeviceProgramming\DeviceProgramming.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="dfu\Aspen-v1.2.dfu">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="dfu\Maple-v3.1.dfu">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="dfu\Maple-v3.6.dfu">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="wdi\wdi-simple.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>
