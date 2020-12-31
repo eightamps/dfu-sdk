@@ -7,17 +7,17 @@ namespace DfuUpdaterExample
     {
         private static readonly string MapleDfuPath = @"dfu\Maple-v3.6.dfu";
 
-        static void UpdateMaple(bool breakOnStm32 = false)
+        static void UpdateMaple(bool forceUpdate = false, bool breakOnStm32 = false)
         {
             try
             {
                 Console.WriteLine("------------------------");
                 Console.WriteLine("UpdateMaple Now");
                 var dfu = new DfuUpdater();
-                dfu.BreakOnStmBootloader = breakOnStm32;
+                dfu.BreakOnStmBootloader = breakOnStm32; // Only used for dev troubleshooting
                 dfu.DfuProgressChanged += OnDfuProgress;
                 dfu.DfuCompleted += OnDfuCompleted;
-                DfuResponse response = dfu.UpdateMapleFirmware(MapleDfuPath, false, true);
+                DfuResponse response = dfu.UpdateMapleFirmware(MapleDfuPath, forceUpdate, true);
                 Console.WriteLine($"Finished with {response}");
             }
             catch (Exception e)
@@ -45,21 +45,28 @@ namespace DfuUpdaterExample
 
         static void EnterStm32Bootloader()
         {
-            UpdateMaple(true);
+            UpdateMaple(true, true);
         }
 
         static void Main()
         {
             while(true)
             {
-                Console.WriteLine("IMPORTANT:");
-                Console.WriteLine("ENSURE device (Maple or Aspen) is powered on and connected over USB before beginning.");
-                Console.WriteLine("Press m + Enter to upgrade Maple V3 firmware");
+                Console.WriteLine("------------------------");
+                Console.WriteLine("IMPORTANT NOTE:");
+                Console.WriteLine("Ensure device (Maple or Aspen) is powered on and connected over USB before beginning.");
+                Console.WriteLine("------------------------");
+                Console.WriteLine("Press mf + Enter to force upgrade Maple V3 firmware (regardless of existing version)");
+                Console.WriteLine("Press m + Enter to upgrade Maple V3 firmware only if necessary");
                 Console.WriteLine("Press s + Enter to manually enter STM BOOTLOADER mode");
                 Console.WriteLine("Press x + Enter to exit");
+                Console.WriteLine("------------------------");
                 string input = Console.ReadLine();
                 switch (input)
                 {
+                    case "mf":
+                        UpdateMaple(true);
+                        break;
                     case "m":
                         UpdateMaple();
                         break;

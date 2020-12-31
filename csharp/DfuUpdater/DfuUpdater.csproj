@@ -17,4 +17,19 @@
     <ProjectReference Include="..\Vendor\DeviceProgramming\DeviceProgramming.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="dfu\Aspen-v1.2.dfu">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="dfu\Maple-v3.1.dfu">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="dfu\Maple-v3.6.dfu">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="wdi\wdi-simple.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

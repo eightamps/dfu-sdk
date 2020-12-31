@@ -11,7 +11,6 @@ using EightAmps.utils;
 
 namespace EightAmps
 {
-
     public enum DfuResponse
     {
         SUCCESS = 0,
