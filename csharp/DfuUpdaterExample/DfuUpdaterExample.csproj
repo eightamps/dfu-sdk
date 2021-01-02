@@ -15,7 +15,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DfuUpdater\DfuUpdater.csproj" />
-    <ProjectReference Include="..\Vendor\DeviceProgramming\DeviceProgramming.csproj" />
   </ItemGroup>
 
 </Project>
