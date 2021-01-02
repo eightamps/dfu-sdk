@@ -5,7 +5,7 @@ namespace DfuUpdaterExample
 {
     class Program
     {
-        private static readonly string MapleDfuPath = @"dfu\Maple-v3.6.dfu";
+        private static readonly string MapleDfuPath = @"dfu\Maple-v3.9.dfu";
 
         static void UpdateMaple(bool forceUpdate = false, bool breakOnStm32 = false)
         {
@@ -56,7 +56,7 @@ namespace DfuUpdaterExample
                 Console.WriteLine("IMPORTANT NOTE:");
                 Console.WriteLine("Ensure device (Maple or Aspen) is powered on and connected over USB before beginning.");
                 Console.WriteLine("------------------------");
-                Console.WriteLine("Press mf + Enter to force upgrade Maple V3 firmware (regardless of existing version)");
+                Console.WriteLine("Press [Enter] to force upgrade Maple V3 firmware (regardless of existing version)");
                 Console.WriteLine("Press m + Enter to upgrade Maple V3 firmware only if necessary");
                 Console.WriteLine("Press s + Enter to manually enter STM BOOTLOADER mode");
                 Console.WriteLine("Press x + Enter to exit");
@@ -64,7 +64,7 @@ namespace DfuUpdaterExample
                 string input = Console.ReadLine();
                 switch (input)
                 {
-                    case "mf":
+                    case "":
                         UpdateMaple(true);
                         break;
                     case "m":

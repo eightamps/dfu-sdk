@@ -24,6 +24,9 @@
     <None Update="dfu\Maple-v3.6.dfu">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="dfu\Maple-v3.9.dfu">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="wdi\wdi-simple.exe">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
