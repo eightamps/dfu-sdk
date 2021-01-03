@@ -8,6 +8,7 @@ using System.Threading;
 using static DeviceProgramming.FileFormat.Dfu;
 using System.Diagnostics;
 using EightAmps.utils;
+using LibUsbDfu;
 
 namespace EightAmps
 {
