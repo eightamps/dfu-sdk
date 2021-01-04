@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text.RegularExpressions;
 using System.Threading;
 using EightAmps;
 
@@ -61,18 +62,19 @@ namespace DfuUpdaterExample
 
         static void Main(string[] args)
         {
-            if(args.Length == 0)
+            if (args.Length == 0)
             {
                 Console.WriteLine($"No arguments provided, performing force DFU update with {MAPLE_DFU_PATH_DEFAULT}");
                 UpdateMaple(true);
             }
             else
             {
+                var dfuPattern = new Regex(@"\.dfu$", RegexOptions.Compiled);
                 var mapleDfuFilePath = args[0];
 
-                if (string.IsNullOrEmpty(mapleDfuFilePath))
+                if (!dfuPattern.IsMatch(mapleDfuFilePath))
                 {
-                    Console.WriteLine("Maple DFU file path is invalid, please try again.");
+                    Console.WriteLine("Maple DFU file path is invalid, please try again (E.G. dfu\\<fileName>.dfu");
                     Environment.Exit(1);
                 }
                 else

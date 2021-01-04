@@ -28,6 +28,7 @@ obj
 .project
 .settings
 .svn
+.suo
 Dist
 _autosave*
 build
