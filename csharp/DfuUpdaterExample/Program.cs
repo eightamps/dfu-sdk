@@ -64,8 +64,7 @@ namespace DfuUpdaterExample
         {
             if (args.Length == 0)
             {
-                Console.WriteLine($"No arguments provided, performing force DFU update with {MAPLE_DFU_PATH_DEFAULT}");
-                UpdateMaple(true);
+                ShowConsoleMenu();
             }
             else
             {
@@ -85,41 +84,45 @@ namespace DfuUpdaterExample
             }
 
             Thread.Sleep(5000);
+        }
 
-            //while(true)
-            //{
-            //    Console.WriteLine("------------------------");
-            //    Console.WriteLine("IMPORTANT NOTE:");
-            //    Console.WriteLine("Ensure device (Maple or Aspen) is powered on and connected over USB before beginning.");
-            //    Console.WriteLine("------------------------");
-            //    Console.WriteLine("Press [Enter] to force upgrade Maple V3 firmware (regardless of existing version)");
-            //    Console.WriteLine("Provide the DFU Update Path followed by pressing [Enter]");
-            //    //Console.WriteLine("Press m + Enter to upgrade Maple V3 firmware only if necessary");
-            //    //Console.WriteLine("Press s + Enter to manually enter STM BOOTLOADER mode");
-            //    //Console.WriteLine("Press x + Enter to exit");
-            //    //Console.WriteLine("------------------------");
-            //    string input = Console.ReadLine();
-            //    switch (input)
-            //    {
-            //        case "":
-            //            UpdateMaple(true);
-            //            break;
-            //        case "m":
-            //            UpdateMaple();
-            //            break;
-            //        case "s":
-            //            EnterStm32Bootloader();
-            //            break;
-            //        case "x":
-            //            Console.WriteLine("------------------------");
-            //            Console.WriteLine("Exiting now");
-            //            return;
-            //        default:
-            //            Console.WriteLine("------------------------");
-            //            Console.WriteLine("ERROR: Unexpected input, please try again.");
-            //            break;
-            //    }
-            //}
+        static void ShowConsoleMenu()
+        {
+            while (true)
+            {
+                Console.WriteLine("------------------------");
+                Console.WriteLine("IMPORTANT NOTE:");
+                Console.WriteLine("Ensure device (Maple or Aspen) is powered on and connected over USB before beginning.");
+                Console.WriteLine("------------------------");
+                Console.WriteLine("Press [Enter] to force upgrade Maple V3 firmware (regardless of existing version)");
+                Console.WriteLine("Provide the DFU Update Path followed by pressing [Enter]");
+                Console.WriteLine("Press m + Enter to upgrade Maple V3 firmware only if necessary");
+                Console.WriteLine("Press s + Enter to manually enter STM BOOTLOADER mode");
+                Console.WriteLine("Press x + Enter to exit");
+                Console.WriteLine("------------------------");
+                string input = Console.ReadLine();
+                switch (input)
+                {
+                    case "":
+                        UpdateMaple(true);
+                        break;
+                    case "m":
+                        UpdateMaple();
+                        break;
+                    case "s":
+                        EnterStm32Bootloader();
+                        break;
+                    case "x":
+                        Console.WriteLine("------------------------");
+                        Console.WriteLine("Exiting now");
+                        Environment.Exit(0);
+                        break;
+                    default:
+                        Console.WriteLine("------------------------");
+                        Console.WriteLine("ERROR: Unexpected input, please try again.");
+                        break;
+                }
+            }
         }
     }
 }
